@@ -1,0 +1,6 @@
+client_nom,véhicule_marque,véhicule_modèle,prix_vente,carburant,année,vendeur,email_contact,téléphone_contact,source_lead,pays_origine
+Jean-Pierre Dubois,Renault,Clio,€19.500,Essence,2023,Pierre Martin,jp.dubois@orange.fr,+33 6 12 34 56 78,Site Internet,France
+María González,SEAT,León,€22.300,Gasolina,2022,Carlos Vega,maria.gonzalez@telefonica.es,+34 615 789 012,Llamada telefónica,España
+António Silva,Volkswagen,Passat,€35.200,Diesel,2023,João Santos,antonio.silva@sapo.pt,+351 966 123 456,Concessionário,Portugal
+Piotr Kowalski,Škoda,Octavia,€26.800,Benzyna,2022,Jan Nowak,p.kowalski@wp.pl,+48 501 234 567,Reklama online,Polska
+Eva van der Berg,Volvo,XC60,€48.900,Elektrisch,2023,Pieter de Vries,eva.vandenberg@ziggo.nl,+31 6 78 90 12 34,Doorverwijzing,Nederland

@@ -1,0 +1,6 @@
+marke,modell,preis,kraftstoff,baujahr,händler,finanzierung,kunde_name,kunde_email,kunde_telefon,quelle
+BMW,X5,€45.900,Benzin,2023,Klaus Müller,Leasing,Friedrich Wagner,f.wagner@web.de,+49 151 234 5678,Website
+Mercedes,C-Klasse,€39.500,Diesel,2022,Hans Weber,Bar,Anna Schneider,anna.schneider@gmail.com,+49 172 987 6543,Empfehlung
+Audi,A4,€42.300,Hybrid,2023,Werner Schmidt,Kredit,Michael Bauer,m.bauer@t-online.de,+49 160 345 6789,Autohaus
+Volkswagen,Golf,€28.750,Benzin,2022,Günter Fischer,Bar,Elisabeth Koch,e.koch@yahoo.de,+49 176 654 3210,Telefon
+Porsche,911,€89.900,Benzin,2023,Klaus Müller,Leasing,Thomas Richter,thomas.richter@outlook.de,+49 155 789 0123,Online-Werbung

@@ -150,12 +150,12 @@ class ForgeAgentHarmonizer:
             # Calculate missing fields (only from successfully mapped fields)
             mapped_fields = {m.target_field for m in mappings if m.status == "mapped"}
             target_schema = {
-                "customer_name": "string",
-                "product_name": "string",
-                "quantity": "integer",
-                "unit_price": "decimal",
-                "sale_date": "date",
-                "sales_rep": "string",
+                "vehicle_make": "string",
+                "vehicle_model": "string",
+                "price": "decimal",
+                "fuel_type": "string",
+                "year": "integer",
+                "dealer_name": "string",
                 "country": "string"
             }
             missing_fields = [field for field in target_schema.keys() if field not in mapped_fields]

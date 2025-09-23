@@ -25,13 +25,15 @@ class DataValidationAgent(RoutedAgent):
         self.model_client = model_client
         self.openai_client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-        # Country inference mappings
+        # Country inference mappings for automotive dealers
         self.name_country_patterns = {
-            'spain': ['maría', 'josé', 'carlos', 'ana', 'manuel', 'carmen', 'antonio', 'francisco'],
-            'france': ['jean', 'marie', 'pierre', 'jacques', 'michel', 'françoise', 'nicolas', 'philippe'],
-            'germany': ['hans', 'klaus', 'werner', 'günter', 'helmut', 'brigitte', 'ursula', 'ingrid'],
-            'italy': ['giovanni', 'giuseppe', 'antonio', 'francesco', 'mario', 'luigi', 'alessandro'],
-            'portugal': ['joão', 'antónio', 'josé', 'manuel', 'francisco', 'luis', 'pedro']
+            'spain': ['carlos', 'ana', 'miguel', 'isabel', 'maría', 'josé', 'manuel', 'carmen'],
+            'france': ['jean-pierre', 'marie', 'pierre', 'nicolas', 'philippe', 'françoise', 'bernard'],
+            'germany': ['hans', 'klaus', 'werner', 'günter', 'helmut', 'müller', 'schmidt', 'weber'],
+            'italy': ['giuseppe', 'marco', 'sofia', 'luca', 'giovanni', 'francesco', 'alessandro'],
+            'portugal': ['joão', 'ana', 'antónio', 'josé', 'manuel', 'luis', 'pedro'],
+            'netherlands': ['pieter', 'anna', 'willem', 'eva', 'jan', 'maria', 'erik'],
+            'poland': ['jan', 'anna', 'piotr', 'katarzyna', 'tomasz', 'agnieszka']
         }
 
         self.language_country_map = {
@@ -40,7 +42,27 @@ class DataValidationAgent(RoutedAgent):
             'de': 'Germany',
             'it': 'Italy',
             'pt': 'Portugal',
+            'nl': 'Netherlands',
+            'pl': 'Poland',
             'en': 'UK'
+        }
+
+        # Predefined fuel type mappings with multilingual support
+        self.fuel_mappings = {
+            # Gasoline variations (normalize to "Gasoline")
+            "gasoline": "Gasoline", "petrol": "Gasoline", "benzin": "Gasoline", "benzina": "Gasoline",
+            "essence": "Gasoline", "gasolina": "Gasoline", "benzyne": "Gasoline", "benzyna": "Gasoline",
+            # Diesel variations (normalize to "Diesel")
+            "diesel": "Diesel", "gasoil": "Diesel", "gasoleo": "Diesel", "mazut": "Diesel",
+            "motorina": "Diesel", "nafta": "Diesel", "dieselöl": "Diesel",
+            # Electric variations (normalize to "Electric")
+            "electric": "Electric", "elettrico": "Electric", "électrique": "Electric",
+            "elektrisch": "Electric", "elétrico": "Electric", "elektrik": "Electric", "elektryczny": "Electric",
+            # Hybrid variations (normalize to "Hybrid")
+            "hybrid": "Hybrid", "ibrido": "Hybrid", "hybride": "Hybrid", "híbrido": "Hybrid",
+            "hibrit": "Hybrid", "hybryd": "Hybrid", "hybryda": "Hybrid",
+            # LPG variations (normalize to "LPG")
+            "lpg": "LPG", "gpl": "LPG", "autogas": "LPG", "propane": "LPG"
         }
 
     @message_handler
@@ -159,22 +181,86 @@ class DataValidationAgent(RoutedAgent):
 
             elif transformation == "convert_to_decimal":
                 try:
-                    # Handle different decimal formats (European vs US)
-                    clean_val = str(value).replace(",", ".")
+                    # Handle price conversions with currency symbols and European formats
+                    clean_val = str(value).replace("€", "").replace("$", "").replace("PLN", "").replace(",", ".")
+                    clean_val = clean_val.replace(" ", "").strip()
                     final_value = float(clean_val)
                     if str(value) != str(final_value):
                         status = "fixed"
-                        action_taken = "Converted to decimal"
+                        action_taken = f"Converted price '{original_value}' to decimal {final_value}"
                 except:
                     final_value = 0.0
                     status = "fixed"
-                    action_taken = "Set to 0.0 (invalid decimal)"
+                    action_taken = "Set to 0.0 (invalid price format)"
 
             elif transformation == "parse_date":
                 final_value = self._parse_date(value)
                 if str(value) != final_value:
                     status = "fixed"
                     action_taken = "Standardized date format"
+
+            elif transformation == "validate_email":
+                # Basic email validation
+                email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+                if re.match(email_pattern, str(value)):
+                    final_value = str(value).lower().strip()
+                    if str(value) != final_value:
+                        status = "fixed"
+                        action_taken = f"Normalized email format"
+                else:
+                    final_value = str(value).strip()
+                    if final_value:
+                        status = "valid"
+                        action_taken = "Email format could not be validated"
+
+            elif transformation == "normalize_phone":
+                # Basic phone number normalization
+                phone_clean = re.sub(r'[^\+\d\s\-\(\)]', '', str(value))
+                final_value = phone_clean.strip()
+                if str(value) != final_value:
+                    status = "fixed"
+                    action_taken = f"Cleaned phone number format"
+
+            elif transformation == "validate_lead_source":
+                # Normalize lead source values
+                source_mappings = {
+                    "website": "Website", "site": "Website", "web": "Website", "online": "Website",
+                    "phone": "Phone", "telefon": "Phone", "téléphone": "Phone", "llamada": "Phone",
+                    "referral": "Referral", "empfehlung": "Referral", "passaparola": "Referral", "doorverwijzing": "Referral",
+                    "showroom": "Showroom", "autohaus": "Showroom", "concessionaria": "Showroom", "concessionário": "Showroom",
+                    "ad": "Online Ad", "advertisement": "Online Ad", "werbung": "Online Ad", "pubblicità": "Online Ad"
+                }
+                source_clean = str(value).lower().strip()
+                for key, normalized in source_mappings.items():
+                    if key in source_clean:
+                        final_value = normalized
+                        if str(value) != final_value:
+                            status = "fixed"
+                            action_taken = f"Normalized lead source '{original_value}' to '{final_value}'"
+                        break
+                else:
+                    final_value = str(value).strip()
+
+            elif transformation == "normalize_fuel_type":
+                # Normalize fuel type to predefined values
+                fuel_clean = str(value).lower().strip()
+                if fuel_clean in self.fuel_mappings:
+                    final_value = self.fuel_mappings[fuel_clean]
+                    if str(value) != final_value:
+                        status = "fixed"
+                        action_taken = f"Normalized fuel type '{original_value}' to '{final_value}'"
+                else:
+                    # Try partial matching for compound terms
+                    for key, normalized in self.fuel_mappings.items():
+                        if key in fuel_clean:
+                            final_value = normalized
+                            status = "fixed"
+                            action_taken = f"Mapped fuel type '{original_value}' to '{final_value}'"
+                            break
+                    else:
+                        final_value = "Unknown"
+                        status = "fixed"
+                        action_taken = f"Unknown fuel type '{original_value}' set to 'Unknown'"
 
             else:
                 # No transformation needed, just clean the string

@@ -23,15 +23,37 @@ class SchemaMappingAgent(RoutedAgent):
         self.model_client = model_client
         self.openai_client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-        # Target schema definition
+        # Target automotive schema definition with customer lead data
         self.target_schema = {
+            "vehicle_make": "string",
+            "vehicle_model": "string",
+            "price": "decimal",
+            "fuel_type": "string",
+            "year": "integer",
+            "dealer_name": "string",
+            "country": "string",
             "customer_name": "string",
-            "product_name": "string",
-            "quantity": "integer",
-            "unit_price": "decimal",
-            "sale_date": "date",
-            "sales_rep": "string",
-            "country": "string"
+            "customer_email": "string",
+            "customer_phone": "string",
+            "lead_source": "string"
+        }
+
+        # Predefined fuel type mappings
+        self.fuel_mappings = {
+            # Gasoline variations
+            "gasoline": "Gasoline", "petrol": "Gasoline", "benzin": "Gasoline", "benzina": "Gasoline",
+            "essence": "Gasoline", "gasolina": "Gasoline", "benzyne": "Gasoline",
+            # Diesel variations
+            "diesel": "Diesel", "gasoil": "Diesel", "gasoleo": "Diesel", "mazut": "Diesel",
+            "motorina": "Diesel", "nafta": "Diesel",
+            # Electric variations
+            "electric": "Electric", "elettrico": "Electric", "électrique": "Electric",
+            "elektrisch": "Electric", "elétrico": "Electric", "elektrik": "Electric",
+            # Hybrid variations
+            "hybrid": "Hybrid", "ibrido": "Hybrid", "hybride": "Hybrid", "híbrido": "Hybrid",
+            "hibrit": "Hybrid", "hybryd": "Hybrid",
+            # LPG variations
+            "lpg": "LPG", "gpl": "LPG", "autogas": "LPG", "propane": "LPG"
         }
 
     @message_handler
@@ -94,66 +116,43 @@ class SchemaMappingAgent(RoutedAgent):
             logger.error(f"❌ Schema Agent Error: {str(e)}")
 
     async def _map_column_to_schema(self, source_column: str, translated_text: str, sample_data: Dict) -> Optional[SchemaMapping]:
-        """Map a source column to target schema field"""
+        """Map a source column to target schema field using AI-first approach"""
 
-        # Define strict mapping keywords for each target field
-        field_keywords = {
-            "customer_name": ["customer", "client", "cliente", "customer_name", "client_name", "nome_cliente"],
-            "product_name": ["product", "produto", "produit", "produkt", "product_name", "nome_produto", "articolo", "item"],
-            "quantity": ["quantity", "qty", "cantidad", "quantité", "menge", "anzahl", "quantita"],
-            "unit_price": ["unit_price", "price", "precio", "prix", "preis", "prezzo", "precio_unitario", "prezzo_pezzo"],
-            "sale_date": ["sale_date", "date", "fecha", "datum", "data", "fecha_venta", "data_vendita", "data_ordine"],
-            "sales_rep": ["sales_rep", "rep", "vendedor", "représentant", "verkäufer", "venditore", "cameriere"],
-            "country": ["country", "país", "pays", "land", "paese", "pais"]
-        }
+        # Let AI handle ALL mappings intelligently
+        try:
+            ai_mapping = await self._ai_assisted_mapping(source_column, translated_text, sample_data)
+            if ai_mapping and ai_mapping['confidence'] > 0.6:
+                transformation = self._determine_transformation(ai_mapping['target_field'], sample_data.get(source_column))
 
-        best_match = None
-        best_score = 0
-
-        # Try fuzzy matching with translated text
-        for target_field, keywords in field_keywords.items():
-            for keyword in keywords:
-                # Calculate similarity
-                similarity = SequenceMatcher(None, translated_text.lower(), keyword.lower()).ratio()
-                if similarity > best_score:
-                    best_score = similarity
-                    best_match = target_field
-
-        # Use AI for better mapping if fuzzy matching confidence is low
-        if best_score < 0.6:
-            try:
-                ai_mapping = await self._ai_assisted_mapping(source_column, translated_text, sample_data)
-                if ai_mapping and ai_mapping['confidence'] > best_score:
-                    best_match = ai_mapping['target_field']
-                    best_score = ai_mapping['confidence']
-            except Exception as e:
-                logger.warning(f"AI mapping failed for {source_column}: {str(e)}")
-
-        if best_match and best_score > 0.7:
-            # Determine transformation needed
-            transformation = self._determine_transformation(best_match, sample_data.get(source_column))
-
-            return SchemaMapping(
-                source_column=source_column,
-                target_field=best_match,
-                mapping_confidence=best_score,
-                transformation_needed=transformation,
-                status="mapped"
-            )
-        else:
-            # Return rejected mapping with reason
-            if best_match:
-                reason = f"Low confidence ({best_score:.2f}) - below threshold (0.7)"
+                return SchemaMapping(
+                    source_column=source_column,
+                    target_field=ai_mapping['target_field'],
+                    mapping_confidence=ai_mapping['confidence'],
+                    transformation_needed=transformation,
+                    status="mapped"
+                )
             else:
-                reason = "No suitable target field found"
+                # Return rejected mapping with AI reasoning
+                reason = ai_mapping.get('reasoning', 'Low AI confidence') if ai_mapping else "AI mapping failed"
+                confidence = ai_mapping.get('confidence', 0.0) if ai_mapping else 0.0
 
+                return SchemaMapping(
+                    source_column=source_column,
+                    target_field="unmapped",
+                    mapping_confidence=confidence,
+                    transformation_needed="none",
+                    status="rejected",
+                    rejection_reason=reason
+                )
+        except Exception as e:
+            logger.warning(f"AI mapping failed for {source_column}: {str(e)}")
             return SchemaMapping(
                 source_column=source_column,
                 target_field="unmapped",
-                mapping_confidence=best_score,
+                mapping_confidence=0.0,
                 transformation_needed="none",
                 status="rejected",
-                rejection_reason=reason
+                rejection_reason=f"AI mapping error: {str(e)}"
             )
 
     async def _ai_assisted_mapping(self, source_column: str, translated_text: str, sample_data: Dict) -> Optional[Dict]:
@@ -161,25 +160,42 @@ class SchemaMappingAgent(RoutedAgent):
         try:
             sample_value = sample_data.get(source_column, "")
 
-            prompt = f"""You are a data mapping expert. Analyze the CSV column and map it to the correct target schema field.
+            prompt = f"""You are an intelligent automotive data harmonization system. Your task is to analyze CSV columns from car dealership data across different languages and map them to a standardized schema.
 
-Column Details:
-- Original name: "{source_column}"
-- Translated name: "{translated_text}"
-- Sample value: "{sample_value}"
+## Input Data
+- Source column: "{source_column}"
+- Translated/normalized name: "{translated_text}"
+- Sample data value: "{sample_value}"
 
-Target Schema Fields:
-1. customer_name - customer or client name
-2. product_name - product, item, or service name
-3. quantity - number of items/units
-4. unit_price - price per single item
-5. sale_date - date of sale/transaction
-6. sales_rep - salesperson or representative name
-7. country - country of sale/origin
+## Target Schema (Automotive Lead Management)
+1. vehicle_make - Manufacturer/brand (BMW, Mercedes, Audi, Toyota, etc.)
+2. vehicle_model - Specific model (X5, A4, Golf, Camry, etc.)
+3. price - Vehicle price/cost (numbers, currency symbols)
+4. fuel_type - Fuel/energy type (Gasoline, Diesel, Electric, Hybrid, LPG)
+5. year - Manufacturing/model year (4-digit years)
+6. dealer_name - Dealership, salesperson, or seller name
+7. country - Country of sale/origin
+8. customer_name - Customer's full name
+9. customer_email - Customer's email address
+10. customer_phone - Customer's phone/telephone number
+11. lead_source - Lead generation source (website, referral, phone, etc.)
 
-IMPORTANT: Respond with ONLY valid JSON, no additional text:
+## Your Analysis Process
+1. **Content Analysis**: Examine the sample value to understand the actual data type
+2. **Semantic Understanding**: Consider the column name meaning across languages
+3. **Context Reasoning**: Use automotive domain knowledge for ambiguous cases
+4. **Confidence Assessment**: Rate your certainty (0.0-1.0) based on clarity of evidence
 
-{{"target_field": "field_name", "confidence": 0.85, "reasoning": "brief explanation"}}"""
+## Decision Guidelines
+- Prioritize data content over column names when they conflict
+- For compound names (email_cliente, kunde_phone), focus on the data type, not customer indicator
+- Email addresses (@ symbols) always map to customer_email regardless of column name
+- Phone numbers (+ symbols, digit patterns) always map to customer_phone
+- Price indicators (currency symbols, large numbers) map to price
+- Be conservative with confidence - uncertain mappings should have lower scores
+
+Respond with JSON only:
+{{"target_field": "field_name", "confidence": 0.75, "reasoning": "why this mapping makes sense"}}"""
 
             response = self.openai_client.chat.completions.create(
                 model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
@@ -193,7 +209,7 @@ IMPORTANT: Respond with ONLY valid JSON, no additional text:
             )
 
             result = response.choices[0].message.content.strip()
-            logger.debug(f"OpenAI response for '{source_column}': {result}")
+            logger.info(f"OpenAI raw response for '{source_column}': {result}")
 
             # Parse JSON response with better error handling
             import json
@@ -204,8 +220,8 @@ IMPORTANT: Respond with ONLY valid JSON, no additional text:
                 logger.warning(f"AI response missing required fields: {mapping_result}")
                 return None
 
-            # Validate target field is in our schema
-            valid_fields = ["customer_name", "product_name", "quantity", "unit_price", "sale_date", "sales_rep", "country"]
+            # Validate target field is in our automotive schema
+            valid_fields = ["vehicle_make", "vehicle_model", "price", "fuel_type", "year", "dealer_name", "country", "customer_name", "customer_email", "customer_phone", "lead_source"]
             if mapping_result["target_field"] not in valid_fields:
                 logger.warning(f"AI returned invalid target field '{mapping_result['target_field']}' for '{source_column}'")
                 return None
@@ -227,14 +243,20 @@ IMPORTANT: Respond with ONLY valid JSON, no additional text:
             return None
 
     def _determine_transformation(self, target_field: str, sample_value: Any) -> str:
-        """Determine what transformation is needed for the data"""
-        if target_field == "quantity":
+        """Determine what transformation is needed for automotive data"""
+        if target_field == "year":
             return "convert_to_integer"
-        elif target_field == "unit_price":
+        elif target_field == "price":
             return "convert_to_decimal"
-        elif target_field == "sale_date":
-            return "parse_date"
+        elif target_field == "fuel_type":
+            return "normalize_fuel_type"
         elif target_field == "country":
             return "infer_country"
+        elif target_field == "customer_email":
+            return "validate_email"
+        elif target_field == "customer_phone":
+            return "normalize_phone"
+        elif target_field == "lead_source":
+            return "validate_lead_source"
         else:
             return "none"

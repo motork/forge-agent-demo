@@ -1,0 +1,6 @@
+marca,modello,prezzo,carburante,anno,venditore,paese,categoria,nome_cliente,email_cliente,telefono_cliente,fonte_contatto
+Ferrari,488 GTB,€198.500,Benzina,2023,Giuseppe Rossi,Italia,Sportiva,Alessandro Ferrari,a.ferrari@libero.it,+39 335 123 4567,Sito Web
+Fiat,500,€16.900,Elettrico,2023,Marco Bianchi,Italia,Città,Giulia Verdi,giulia.verdi@gmail.com,+39 340 987 6543,Passaparola
+Alfa Romeo,Giulia,€35.200,Diesel,2022,Luca Conti,Italia,Berlina,Francesco Marino,f.marino@yahoo.it,+39 347 456 7890,Concessionaria
+Lamborghini,Huracán,€180.000,Benzina,2023,Giuseppe Rossi,Italia,Supercar,Matteo Ricci,matteo.ricci@fastwebnet.it,+39 333 234 5678,Pubblicità
+Maserati,Levante,€78.400,Ibrido,2022,Sofia Romano,Italia,SUV,Chiara Lombardi,chiara.lombardi@tim.it,+39 338 567 8901,Telefono

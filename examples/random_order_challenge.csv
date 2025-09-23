@@ -1,0 +1,6 @@
+país,combustível,vendedor_nome,modelo_carro,preço_venda,marca_auto,ano_fabrico,cor_exterior,cliente_nome,email_cliente,telefone_cliente,origem_lead
+Portugal,Gasolina,João Silva,Golf,€28.500,Volkswagen,2023,Azul,Maria Santos,maria.santos@email.pt,+351 912 345 678,Website
+Espanha,Eléctrico,Ana Rodriguez,Model S,€89.900,Tesla,2023,Preto,Carlos Mendez,carlos.mendez@gmail.com,+34 666 789 012,Referral
+França,Hybride,Pierre Martin,Prius,€32.750,Toyota,2022,Branco,Sophie Dubois,sophie.dubois@orange.fr,+33 6 78 90 12 34,Phone
+Alemanha,Diesel,Hans Schmidt,A6,€48.900,Audi,2023,Prata,Klaus Weber,klaus.weber@gmx.de,+49 170 123 4567,Showroom
+Itália,Benzina,Giuseppe Bianchi,500X,€22.400,Fiat,2022,Vermelho,Marco Rossi,marco.rossi@libero.it,+39 340 567 8901,Online Ad

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Smart International Sales Data Harmonizer - Test Runner
+# Forge Agent - Automotive Lead Data Harmonizer Test Runner
 # This script runs comprehensive tests to verify the system is working correctly
 
 set -e  # Exit on any error
@@ -72,8 +72,8 @@ run_test() {
 
 # Main test runner
 main() {
-    echo "🧪 Smart International Sales Data Harmonizer - Test Suite"
-    echo "======================================================="
+    echo "🧪 Forge Agent - Automotive Lead Data Harmonizer Test Suite"
+    echo "==========================================================="
     echo
 
     # Check if we're in the right directory
@@ -157,91 +157,111 @@ main() {
     fi
     echo
 
-    # Test 4: Create additional test data
-    print_step "Creating additional test data sets"
+    # Test 4: Create additional automotive test data
+    print_step "Creating additional automotive test data sets"
 
-    # Spanish test data
-    cat > test_spanish.csv << EOF
-cliente,producto,cantidad,precio_unitario,fecha_venta,vendedor
-María González,Laptop HP,1,850.00,2024-02-01,Carlos Ruiz
-José Martínez,Tablet Samsung,2,300.50,2024-02-02,Ana López
+    # Spanish automotive lead data
+    cat > test_spanish_auto.csv << EOF
+marca,modelo,precio,combustible,año,vendedor,cliente,email,telefono,fuente
+SEAT,León,€22.300,Gasolina,2022,Carlos Vega,María González,maria.gonzalez@telefonica.es,+34 615 789 012,Teléfono
+Audi,A3,€28.500,Diesel,2023,Ana López,José Martínez,jose.martinez@gmail.com,+34 622 456 789,Web
 EOF
 
-    # French test data
-    cat > test_french.csv << EOF
-client,produit,quantité,prix_unitaire,date_vente,vendeur
-Pierre Dupont,Ordinateur Dell,1,1100.00,2024-02-03,Marie Claire
-Jacques Moreau,Souris Logitech,5,25.99,2024-02-04,Jean Bonnet
+    # French automotive lead data
+    cat > test_french_auto.csv << EOF
+marque,modèle,prix,carburant,année,vendeur,client_nom,email_client,téléphone_client,source_lead
+Renault,Clio,€19.500,Essence,2023,Pierre Martin,Sophie Dupont,sophie.dupont@orange.fr,+33 6 12 34 56 78,Site Internet
+Peugeot,308,€25.800,Hybride,2022,Marie Claire,Jacques Moreau,j.moreau@free.fr,+33 6 87 65 43 21,Concession
 EOF
 
-    # German test data
-    cat > test_german.csv << EOF
-kunde,produkt,menge,einzelpreis,verkaufsdatum,verkäufer
-Hans Schmidt,Computer Asus,1,950.00,2024-02-05,Klaus Weber
-Greta Mueller,Tastatur Microsoft,3,45.50,2024-02-06,Wolfgang Bach
+    # German automotive lead data
+    cat > test_german_auto.csv << EOF
+marke,modell,preis,kraftstoff,baujahr,händler,kunde_name,kunde_email,kunde_telefon,quelle
+BMW,X3,€45.900,Benzin,2023,Klaus Weber,Hans Schmidt,h.schmidt@web.de,+49 151 234 5678,Website
+Volkswagen,Golf,€28.750,Diesel,2022,Wolfgang Bach,Greta Mueller,g.mueller@t-online.de,+49 172 987 6543,Empfehlung
 EOF
 
     print_success "Test data sets created"
     echo
 
-    # Test 5: Spanish data harmonization
+    # Test 5: Spanish automotive data harmonization
     total_tests=$((total_tests + 1))
-    if run_test "Spanish Data Harmonization" "python main.py harmonize test_spanish.csv --output test_spanish_harmonized.csv" "Processing completed successfully"; then
+    if run_test "Spanish Automotive Lead Data Harmonization" "python main.py harmonize test_spanish_auto.csv --output test_spanish_auto_harmonized.csv" "Processing completed successfully"; then
         passed_tests=$((passed_tests + 1))
 
         # Verify output file
-        if [[ -f "test_spanish_harmonized.csv" ]]; then
-            print_success "Spanish harmonized file created"
-            # Check if it has the expected headers
-            if head -1 test_spanish_harmonized.csv | grep -q "customer_name,product_name,quantity,unit_price,sale_date,sales_rep,country"; then
-                print_success "Spanish file has correct schema"
+        if [[ -f "test_spanish_auto_harmonized.csv" ]]; then
+            print_success "Spanish automotive harmonized file created"
+            # Check if it has the expected automotive headers
+            if head -1 test_spanish_auto_harmonized.csv | grep -q "vehicle_make,vehicle_model,price,fuel_type,year,dealer_name,country,customer_name,customer_email,customer_phone,lead_source"; then
+                print_success "Spanish automotive file has correct schema"
             else
-                print_warning "Spanish file schema might be incorrect"
+                print_warning "Spanish automotive file schema might be incorrect"
             fi
         else
-            print_warning "Spanish harmonized file was not created"
+            print_warning "Spanish automotive harmonized file was not created"
         fi
     else
         failed_tests=$((failed_tests + 1))
     fi
     echo
 
-    # Test 6: French data harmonization
+    # Test 6: French automotive data harmonization
     total_tests=$((total_tests + 1))
-    if run_test "French Data Harmonization" "python main.py harmonize test_french.csv --output test_french_harmonized.csv" "Processing completed successfully"; then
+    if run_test "French Automotive Lead Data Harmonization" "python main.py harmonize test_french_auto.csv --output test_french_auto_harmonized.csv" "Processing completed successfully"; then
         passed_tests=$((passed_tests + 1))
 
-        if [[ -f "test_french_harmonized.csv" ]]; then
-            print_success "French harmonized file created"
+        if [[ -f "test_french_auto_harmonized.csv" ]]; then
+            print_success "French automotive harmonized file created"
         fi
     else
         failed_tests=$((failed_tests + 1))
     fi
     echo
 
-    # Test 7: German data harmonization
+    # Test 7: German automotive data harmonization
     total_tests=$((total_tests + 1))
-    if run_test "German Data Harmonization" "python main.py harmonize test_german.csv --output test_german_harmonized.csv" "Processing completed successfully"; then
+    if run_test "German Automotive Lead Data Harmonization" "python main.py harmonize test_german_auto.csv --output test_german_auto_harmonized.csv" "Processing completed successfully"; then
         passed_tests=$((passed_tests + 1))
 
-        if [[ -f "test_german_harmonized.csv" ]]; then
-            print_success "German harmonized file created"
+        if [[ -f "test_german_auto_harmonized.csv" ]]; then
+            print_success "German automotive harmonized file created"
         fi
     else
         failed_tests=$((failed_tests + 1))
     fi
     echo
 
-    # Test 8: Verbose mode test
+    # Test 8: Existing examples harmonization
     total_tests=$((total_tests + 1))
-    if run_test "Verbose Mode Test" "python main.py harmonize sample_sales_data.csv --verbose" "Language Detection & Translation"; then
+    if run_test "Random Order Challenge Test" "python main.py harmonize examples/random_order_challenge.csv --output test_random_harmonized.csv" "Processing completed successfully"; then
+        passed_tests=$((passed_tests + 1))
+        print_success "Random order challenge test passed"
+    else
+        failed_tests=$((failed_tests + 1))
+    fi
+    echo
+
+    # Test 9: Mixed European leads test
+    total_tests=$((total_tests + 1))
+    if run_test "Mixed European Leads Test" "python main.py harmonize examples/leads_mixed_european.csv --output test_mixed_harmonized.csv" "Processing completed successfully"; then
+        passed_tests=$((passed_tests + 1))
+        print_success "Mixed European leads test passed"
+    else
+        failed_tests=$((failed_tests + 1))
+    fi
+    echo
+
+    # Test 10: Verbose mode test
+    total_tests=$((total_tests + 1))
+    if run_test "Verbose Mode Test" "python main.py harmonize examples/dealership_german.csv --verbose" "Language Detection & Translation"; then
         passed_tests=$((passed_tests + 1))
     else
         failed_tests=$((failed_tests + 1))
     fi
     echo
 
-    # Test 9: Error handling test
+    # Test 11: Error handling test
     total_tests=$((total_tests + 1))
     if run_test "Error Handling Test" "python main.py harmonize nonexistent_file.csv" "CSV file not found"; then
         passed_tests=$((passed_tests + 1))
@@ -251,17 +271,19 @@ EOF
     echo
 
     # Performance test (optional, only if files exist)
-    if [[ -f "test_spanish_harmonized.csv" ]]; then
+    if [[ -f "test_spanish_auto_harmonized.csv" ]]; then
         print_step "Performance Analysis"
 
-        spanish_records=$(tail -n +2 test_spanish_harmonized.csv | wc -l)
-        french_records=$(tail -n +2 test_french_harmonized.csv | wc -l 2>/dev/null || echo "0")
-        german_records=$(tail -n +2 test_german_harmonized.csv | wc -l 2>/dev/null || echo "0")
+        spanish_records=$(tail -n +2 test_spanish_auto_harmonized.csv | wc -l)
+        french_records=$(tail -n +2 test_french_auto_harmonized.csv | wc -l 2>/dev/null || echo "0")
+        german_records=$(tail -n +2 test_german_auto_harmonized.csv | wc -l 2>/dev/null || echo "0")
+        mixed_records=$(tail -n +2 test_mixed_harmonized.csv | wc -l 2>/dev/null || echo "0")
 
-        print_status "Records processed:"
-        echo "  - Spanish: $spanish_records records"
-        echo "  - French: $french_records records"
-        echo "  - German: $german_records records"
+        print_status "Automotive lead records processed:"
+        echo "  - Spanish automotive: $spanish_records records"
+        echo "  - French automotive: $french_records records"
+        echo "  - German automotive: $german_records records"
+        echo "  - Mixed European leads: $mixed_records records"
         echo
     fi
 
@@ -275,17 +297,17 @@ EOF
 
     if [[ $failed_tests -eq 0 ]]; then
         echo -e "${GREEN}🎉 ALL TESTS PASSED!${NC}"
-        echo "The Smart International Sales Data Harmonizer is working correctly."
+        echo "The Forge Agent - Automotive Lead Data Harmonizer is working correctly."
         echo
 
         # Show sample output
-        if [[ -f "test_spanish_harmonized.csv" ]]; then
-            print_step "Sample Output Preview"
-            echo "Original Spanish data:"
-            head -2 test_spanish.csv
+        if [[ -f "test_spanish_auto_harmonized.csv" ]]; then
+            print_step "Sample Automotive Lead Data Output Preview"
+            echo "Original Spanish automotive data:"
+            head -2 test_spanish_auto.csv
             echo
-            echo "Harmonized output:"
-            head -2 test_spanish_harmonized.csv
+            echo "Harmonized automotive lead output:"
+            head -2 test_spanish_auto_harmonized.csv
             echo
         fi
 
@@ -301,6 +323,7 @@ EOF
         echo "2. Missing dependencies: Run 'pip install -r requirements.txt'"
         echo "3. Virtual environment issues: Ensure venv is activated"
         echo "4. Network issues: Check internet connection for translation services"
+        echo "5. Automotive schema mismatch: Ensure all 11 fields are properly mapped"
         echo
 
         cleanup_test_files
