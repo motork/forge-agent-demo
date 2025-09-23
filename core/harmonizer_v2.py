@@ -10,7 +10,7 @@ import logging
 from agents.language_agent import LanguageDetectionAgent
 from agents.schema_agent import SchemaMappingAgent
 from agents.validation_agent import DataValidationAgent
-from .models import ProcessCSVMessage, FinalResultMessage
+from .models import ProcessCSVMessage, FinalResultMessage, SchemaMapping
 
 load_dotenv()
 logging.basicConfig(level=logging.INFO)
@@ -81,7 +81,7 @@ class ForgeAgentHarmonizer:
             for header in headers:
                 detection = await language_agent._detect_and_translate(header, "header")
                 detections.append(detection)
-                logger.info(f"  📝 '{header}' -> {detection.detected_language}: '{detection.translated_text}'")
+                logger.info(f"  📝 '{header}' -> {detection.detected_language_full}: '{detection.translated_text}'")
 
             # Step 2: Schema Mapping
             logger.info("🗺️ Step 2: Schema Mapping")
@@ -100,16 +100,55 @@ class ForgeAgentHarmonizer:
                     translated_headers.get(source_column, source_column),
                     sample_data
                 )
-                if mapping:
-                    mappings.append(mapping)
-                    logger.info(f"  📋 '{mapping.source_column}' -> '{mapping.target_field}' ({mapping.mapping_confidence:.2f})")
+                mappings.append(mapping)
 
-            # Set current mappings for validation agent
-            validation_agent.current_mappings = {m.source_column: m for m in mappings}
+            # Resolve conflicts: if multiple sources map to same target, keep the one with highest confidence
+            resolved_mappings = []
+            target_field_map = {}
+
+            for mapping in mappings:
+                if mapping.status == "mapped":
+                    target_field = mapping.target_field
+                    if target_field not in target_field_map or mapping.mapping_confidence > target_field_map[target_field].mapping_confidence:
+                        target_field_map[target_field] = mapping
+                else:
+                    resolved_mappings.append(mapping)  # Keep rejected mappings as-is
+
+            # Add all winning mappings and mark losers as rejected
+            for mapping in mappings:
+                if mapping.status == "mapped":
+                    if target_field_map[mapping.target_field] == mapping:
+                        resolved_mappings.append(mapping)  # Winner
+                    else:
+                        # Loser - convert to rejected
+                        rejected_mapping = SchemaMapping(
+                            source_column=mapping.source_column,
+                            target_field="unmapped",
+                            mapping_confidence=mapping.mapping_confidence,
+                            transformation_needed="none",
+                            status="rejected",
+                            rejection_reason=f"Duplicate mapping conflict - '{target_field_map[mapping.target_field].source_column}' has higher confidence"
+                        )
+                        resolved_mappings.append(rejected_mapping)
+
+            mappings = resolved_mappings
+
+            # Color-coded mapping status
+            for mapping in mappings:
+                if mapping.status == "mapped":
+                    logger.info(f"  ✅ '{mapping.source_column}' -> '{mapping.target_field}' (confidence: {mapping.mapping_confidence:.2f})")
+                else:
+                    logger.info(f"  ❌ '{mapping.source_column}' -> REJECTED ({mapping.rejection_reason})")
+
+            # Set current mappings for validation agent (only mapped fields)
+            mapped_only = [m for m in mappings if m.status == "mapped"]
+            rejected_count = len([m for m in mappings if m.status == "rejected"])
+            validation_agent.current_mappings = {m.source_column: m for m in mapped_only}
             validation_agent.missing_fields = []
+            validation_agent.rejected_count = rejected_count
 
-            # Calculate missing fields
-            mapped_fields = {m.target_field for m in mappings}
+            # Calculate missing fields (only from successfully mapped fields)
+            mapped_fields = {m.target_field for m in mappings if m.status == "mapped"}
             target_schema = {
                 "customer_name": "string",
                 "product_name": "string",
@@ -124,6 +163,11 @@ class ForgeAgentHarmonizer:
 
             if missing_fields:
                 logger.info(f"  ⚠️ Missing fields: {missing_fields}")
+
+            # Show mapping summary
+            mapped_count = len([m for m in mappings if m.status == "mapped"])
+            rejected_count = len([m for m in mappings if m.status == "rejected"])
+            logger.info(f"📊 Mapping Summary: {mapped_count} mapped, {rejected_count} rejected")
 
             # Step 3: Data Validation & Enhancement
             logger.info("✅ Step 3: Data Validation & Enhancement")

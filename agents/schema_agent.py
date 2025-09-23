@@ -96,15 +96,15 @@ class SchemaMappingAgent(RoutedAgent):
     async def _map_column_to_schema(self, source_column: str, translated_text: str, sample_data: Dict) -> Optional[SchemaMapping]:
         """Map a source column to target schema field"""
 
-        # Define mapping keywords for each target field
+        # Define strict mapping keywords for each target field
         field_keywords = {
-            "customer_name": ["customer", "client", "cliente", "name", "nombre", "nom", "kunde"],
-            "product_name": ["product", "item", "producto", "produit", "artikel", "produkt"],
-            "quantity": ["quantity", "qty", "amount", "cantidad", "quantité", "menge", "anzahl"],
-            "unit_price": ["price", "cost", "precio", "prix", "preis", "unit", "unitario"],
-            "sale_date": ["date", "fecha", "datum", "time", "venta", "sale"],
-            "sales_rep": ["rep", "vendor", "seller", "vendedor", "représentant", "verkäufer"],
-            "country": ["country", "país", "pays", "land", "nation"]
+            "customer_name": ["customer", "client", "cliente", "customer_name", "client_name", "nome_cliente"],
+            "product_name": ["product", "produto", "produit", "produkt", "product_name", "nome_produto", "articolo", "item"],
+            "quantity": ["quantity", "qty", "cantidad", "quantité", "menge", "anzahl", "quantita"],
+            "unit_price": ["unit_price", "price", "precio", "prix", "preis", "prezzo", "precio_unitario", "prezzo_pezzo"],
+            "sale_date": ["sale_date", "date", "fecha", "datum", "data", "fecha_venta", "data_vendita", "data_ordine"],
+            "sales_rep": ["sales_rep", "rep", "vendedor", "représentant", "verkäufer", "venditore", "cameriere"],
+            "country": ["country", "país", "pays", "land", "paese", "pais"]
         }
 
         best_match = None
@@ -129,7 +129,7 @@ class SchemaMappingAgent(RoutedAgent):
             except Exception as e:
                 logger.warning(f"AI mapping failed for {source_column}: {str(e)}")
 
-        if best_match and best_score > 0.3:
+        if best_match and best_score > 0.7:
             # Determine transformation needed
             transformation = self._determine_transformation(best_match, sample_data.get(source_column))
 
@@ -143,7 +143,7 @@ class SchemaMappingAgent(RoutedAgent):
         else:
             # Return rejected mapping with reason
             if best_match:
-                reason = f"Low confidence ({best_score:.2f}) - below threshold (0.3)"
+                reason = f"Low confidence ({best_score:.2f}) - below threshold (0.7)"
             else:
                 reason = "No suitable target field found"
 
@@ -161,41 +161,69 @@ class SchemaMappingAgent(RoutedAgent):
         try:
             sample_value = sample_data.get(source_column, "")
 
-            prompt = f"""
-Given a CSV column with the following details:
-- Original column name: {source_column}
-- Translated column name: {translated_text}
-- Sample value: {sample_value}
+            prompt = f"""You are a data mapping expert. Analyze the CSV column and map it to the correct target schema field.
 
-Map this to one of these target schema fields:
-- customer_name (customer/client name)
-- product_name (product/item name)
-- quantity (number of items)
-- unit_price (price per item)
-- sale_date (date of sale)
-- sales_rep (salesperson name)
-- country (country of sale)
+Column Details:
+- Original name: "{source_column}"
+- Translated name: "{translated_text}"
+- Sample value: "{sample_value}"
 
-Respond with JSON: {{"target_field": "field_name", "confidence": 0.0-1.0, "reasoning": "brief explanation"}}
-"""
+Target Schema Fields:
+1. customer_name - customer or client name
+2. product_name - product, item, or service name
+3. quantity - number of items/units
+4. unit_price - price per single item
+5. sale_date - date of sale/transaction
+6. sales_rep - salesperson or representative name
+7. country - country of sale/origin
+
+IMPORTANT: Respond with ONLY valid JSON, no additional text:
+
+{{"target_field": "field_name", "confidence": 0.85, "reasoning": "brief explanation"}}"""
 
             response = self.openai_client.chat.completions.create(
                 model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
-                messages=[{"role": "user", "content": prompt}],
-                max_tokens=150,
-                temperature=0.1
+                messages=[
+                    {"role": "system", "content": "You are a data mapping specialist. Always respond with valid JSON only."},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=200,
+                temperature=0.0,
+                response_format={"type": "json_object"}
             )
 
             result = response.choices[0].message.content.strip()
+            logger.debug(f"OpenAI response for '{source_column}': {result}")
 
-            # Parse JSON response
+            # Parse JSON response with better error handling
             import json
             mapping_result = json.loads(result)
 
+            # Validate required fields
+            if not all(key in mapping_result for key in ["target_field", "confidence"]):
+                logger.warning(f"AI response missing required fields: {mapping_result}")
+                return None
+
+            # Validate target field is in our schema
+            valid_fields = ["customer_name", "product_name", "quantity", "unit_price", "sale_date", "sales_rep", "country"]
+            if mapping_result["target_field"] not in valid_fields:
+                logger.warning(f"AI returned invalid target field '{mapping_result['target_field']}' for '{source_column}'")
+                return None
+
+            # Ensure confidence is a float between 0 and 1
+            confidence = float(mapping_result["confidence"])
+            if confidence < 0 or confidence > 1:
+                confidence = max(0, min(1, confidence))
+                mapping_result["confidence"] = confidence
+
+            logger.info(f"🤖 AI mapping: '{source_column}' -> '{mapping_result['target_field']}' (confidence: {confidence:.2f})")
             return mapping_result
 
+        except json.JSONDecodeError as e:
+            logger.warning(f"AI mapping JSON error for '{source_column}': {str(e)} - Response: {result if 'result' in locals() else 'No response'}")
+            return None
         except Exception as e:
-            logger.warning(f"AI mapping error: {str(e)}")
+            logger.warning(f"AI mapping error for '{source_column}': {str(e)}")
             return None
 
     def _determine_transformation(self, target_field: str, sample_value: Any) -> str:

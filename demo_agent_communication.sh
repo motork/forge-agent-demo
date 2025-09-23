@@ -119,8 +119,8 @@ run_demo() {
 
     # Run with output capture but still show to user
     if python main.py harmonize "$input_file" --output "$output_file" --verbose 2>&1 | \
-       grep -E "(Language Agent|Schema Agent|Validation Agent|Processing completed|📝|📋|✅)" | \
-       head -20; then
+       grep -E "(Language Agent|Schema Agent|Validation Agent|Processing completed|📝|📋|✅|❌|📊.*Summary)" | \
+       head -25; then
 
         end_time=$(date +%s)
         duration=$((end_time - start_time))

@@ -84,6 +84,7 @@ def harmonize(input_file, output, verbose):
                 summary = result["summary"]
                 click.echo(f"  • Total records processed: {summary['total_records']}")
                 click.echo(f"  • Fields mapped: {summary['fields_mapped']}")
+                click.echo(f"  • Fields rejected: {summary.get('fields_rejected', 0)}")
                 click.echo(f"  • Fields enriched: {summary['fields_enriched']}")
                 click.echo(f"  • Quality score: {summary['quality_score']:.2f}")
                 click.echo("")

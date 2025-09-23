@@ -111,6 +111,7 @@ class DataValidationAgent(RoutedAgent):
             processing_summary = {
                 "total_records": len(df),
                 "fields_mapped": len(self.current_mappings),
+                "fields_rejected": getattr(self, 'rejected_count', 0),
                 "fields_enriched": len(self.missing_fields),
                 "quality_score": quality_score,
                 "validation_results": len(validation_results)
