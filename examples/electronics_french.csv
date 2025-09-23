@@ -1,0 +1,6 @@
+date_achat,magasin,nom_produit,garantie_mois,nom_client,qte,prix_unite,representant,code_promo
+2024-03-05,Paris 15e,iPhone 15 Pro,24,Pierre Dubois,1,1199.00,Marie Leclerc,TECH20
+2024-03-05,Lyon Centre,MacBook Air M2,36,Sophie Martin,1,1299.00,Jean Moreau,
+2024-03-06,Paris 15e,AirPods Pro,12,Antoine Girard,2,279.00,Marie Leclerc,AUDIO15
+2024-03-06,Marseille,iPad Air,24,Camille Rousseau,1,649.00,Philippe Durand,TABLET10
+2024-03-07,Lyon Centre,Apple Watch,24,Lucas Bernard,3,399.00,Jean Moreau,WATCH25

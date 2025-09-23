@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip install:*)",
+      "Bash(python3 -m pip install:*)",
+      "Bash(python3:*)",
+      "Bash(source:*)",
+      "WebFetch(domain:microsoft.github.io)",
+      "Bash(python test:*)",
+      "Bash(chmod:*)",
+      "Bash(python:*)",
+      "Bash(./quick_test.sh:*)",
+      "Bash(./demo_agent_communication.sh:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

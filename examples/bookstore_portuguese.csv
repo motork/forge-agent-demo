@@ -1,0 +1,6 @@
+isbn,vendedor,valor_unitario,secao,comprador,editora,quantidade,livro,data_compra
+978-85-359-0277-5,João Silva,29.90,Literatura,Maria Santos,Ática,1,Dom Casmurro,2024-03-15
+978-85-26-01382-4,Ana Costa,24.50,Clássicos,António Oliveira,Globo,2,O Cortiço,2024-03-16
+978-85-08-12345-6,João Silva,32.00,Literatura,Catarina Ferreira,Companhia das Letras,1,Memórias Póstumas,2024-03-17
+978-85-7448-789-0,Carlos Mendes,27.80,Romance,Pedro Rodrigues,Martin Claret,3,O Guarani,2024-03-18
+978-85-254-1234-7,Ana Costa,26.50,Clássicos,Isabel Martins,L&PM,1,Iracema,2024-03-19

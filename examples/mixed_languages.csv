@@ -1,0 +1,6 @@
+seller,categoria,preço,anzahl,cliente,status_pedido,produit,fecha,desconto
+Carlos,Telefones,699.00,1,María González,Entregue,Smartphone Samsung,2024-03-20,10%
+Marie,Ordinateurs,899.00,1,Jean Dupont,Expédié,Ordinateur portable,2024-03-21,5%
+Hans,Tablets,549.00,2,Klaus Weber,Geliefert,Tablet Apple,2024-03-22,15%
+Ana,Câmeras,450.00,1,João Santos,Entregue,Câmera Digital,2024-03-23,
+Marco,Audio,129.00,3,Giuseppe Verdi,Consegnato,Cuffie Bluetooth,2024-03-24,20%

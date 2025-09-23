@@ -1,0 +1,6 @@
+medicamento,farmaceutico,precio_unidad,receta_numero,cliente_nombre,unidades,fecha_venta,laboratorio,tipo_medicamento
+Ibuprofeno 600mg,Dr. Patricia López,8.50,RX-2024-001,Carmen Ruiz,2,2024-03-25,Bayer,Analgésico
+Amoxicilina 500mg,Dr. Miguel Santos,12.30,RX-2024-002,Fernando García,1,2024-03-25,Pfizer,Antibiótico
+Paracetamol 500mg,Patricia López,4.20,,María Jiménez,3,2024-03-26,Johnson & Johnson,Analgésico
+Omeprazol 20mg,Miguel Santos,15.80,RX-2024-003,Luis Martín,1,2024-03-26,AstraZeneca,Antiácido
+Loratadina 10mg,Patricia López,6.90,,Ana Fernández,2,2024-03-27,Merck,Antihistamínico

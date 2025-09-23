@@ -1,0 +1,6 @@
+cameriere,prezzo_pezzo,articolo,tavolo,quantita,data_ordine,cliente,metodo_pagamento
+Marco Bianchi,12.50,Pizza Margherita,7,2,2024-03-01,Giuseppe Rossi,Contanti
+Lucia Ferrari,15.00,Pasta Carbonara,3,1,2024-03-01,Anna Verdi,Carta
+Marco Bianchi,18.50,Risotto Milanese,12,3,2024-03-02,Roberto Nero,Contanti
+Sofia Romano,5.00,Gelato Vaniglia,5,4,2024-03-02,Francesca Blu,Carta
+Lucia Ferrari,8.50,Tiramisù,9,2,2024-03-03,Giovanni Rosso,Contanti

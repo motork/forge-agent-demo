@@ -1,0 +1,6 @@
+guest_name,chambre_type,preis_pro_nacht,número_quartos,data_checkin,responsável,nights_booked,hotel_location,método_pagamento
+John Smith,Deluxe Suite,€180.00,1,2024-04-01,Reception Team,3,Paris,Credit Card
+Marie Dubois,Chambre Standard,€95.00,2,2024-04-02,équipe_accueil,2,München,Carte Bancaire
+Hans Müller,Standardzimmer,€120.00,1,2024-04-03,Empfangsteam,4,Roma,Kreditkarte
+Carlos Mendoza,Habitación Doble,€110.00,1,2024-04-04,Equipo Recepción,2,Barcelona,Tarjeta
+Luca Rossi,Camera Matrimoniale,€140.00,1,2024-04-05,Team Reception,1,Amsterdam,Carta di Credito

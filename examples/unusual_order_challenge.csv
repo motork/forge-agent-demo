@@ -1,0 +1,6 @@
+tax_id,shipping_address,vendeur,quantité,nom_customer,special_instructions,artikel_preis,order_timestamp,product_sku,payment_status
+FR12345678901,15 Rue de la Paix Paris,Jean-Pierre,2,Sophie Moreau,Livraison urgente,€45.99,2024-04-10 14:30:00,SKU-FR-001,Payé
+DE98765432109,Hauptstraße 12 Berlin,Klaus Fischer,1,Wolfgang Bauer,Geschenk verpacken,€89.50,2024-04-10 15:45:00,SKU-DE-002,Bezahlt
+ES11223344556,Calle Mayor 25 Madrid,Carlos Vega,3,Isabel Morales,Envío express,€23.75,2024-04-10 16:20:00,SKU-ES-003,Pagado
+IT55667788990,Via Roma 8 Milano,Giuseppe Bianchi,1,Francesca Conti,Consegna sabato,€67.80,2024-04-10 17:10:00,SKU-IT-004,Pagato
+PT99887766554,Rua Augusta 45 Lisboa,João Costa,4,Ana Silva,Embrulho presente,€12.30,2024-04-10 18:00:00,SKU-PT-005,Pago
