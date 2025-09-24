@@ -160,47 +160,59 @@ class SchemaMappingAgent(RoutedAgent):
         try:
             sample_value = sample_data.get(source_column, "")
 
-            prompt = f"""You are an intelligent automotive data harmonization system. Your task is to analyze CSV columns from car dealership data across different languages and map them to a standardized schema.
+            agent_config = {
+                "name": "Automotive Schema Mapping Agent",
+                "description": "Expert automotive data analyst specializing in harmonizing dealership data",
+                "instructions": f"""You are an expert automotive data analyst specializing in harmonizing dealership and lead management data across multiple languages and formats.
 
-## Input Data
+TASK: Analyze the provided CSV column and map it to the correct standardized automotive schema field.
+
+INPUT DATA:
 - Source column: "{source_column}"
 - Translated/normalized name: "{translated_text}"
 - Sample data value: "{sample_value}"
 
-## Target Schema (Automotive Lead Management)
-1. vehicle_make - Manufacturer/brand (BMW, Mercedes, Audi, Toyota, etc.)
-2. vehicle_model - Specific model (X5, A4, Golf, Camry, etc.)
-3. price - Vehicle price/cost (numbers, currency symbols)
+TARGET AUTOMOTIVE SCHEMA:
+1. vehicle_make - Car manufacturer/brand (BMW, Mercedes, Audi, Toyota, Ferrari, etc.)
+2. vehicle_model - Specific vehicle model (X5, A4, Golf, Camry, 488 GTB, etc.)
+3. price - Vehicle price/cost (monetary values with currency symbols)
 4. fuel_type - Fuel/energy type (Gasoline, Diesel, Electric, Hybrid, LPG)
-5. year - Manufacturing/model year (4-digit years)
+5. year - Manufacturing/model year (4-digit years: 2020, 2023, etc.)
 6. dealer_name - Dealership, salesperson, or seller name
-7. country - Country of sale/origin
-8. customer_name - Customer's full name
+7. country - Country of sale/registration/origin
+8. customer_name - Potential customer's full name
 9. customer_email - Customer's email address
 10. customer_phone - Customer's phone/telephone number
-11. lead_source - Lead generation source (website, referral, phone, etc.)
+11. lead_source - Lead generation source (website, referral, showroom, phone, etc.)
 
-## Your Analysis Process
-1. **Content Analysis**: Examine the sample value to understand the actual data type
-2. **Semantic Understanding**: Consider the column name meaning across languages
-3. **Context Reasoning**: Use automotive domain knowledge for ambiguous cases
-4. **Confidence Assessment**: Rate your certainty (0.0-1.0) based on clarity of evidence
+ANALYSIS METHODOLOGY:
+1. DATA-FIRST ANALYSIS: Examine the sample value to identify the actual data type and format
+2. SEMANTIC INTERPRETATION: Analyze column name meaning across automotive terminology and languages
+3. DOMAIN EXPERTISE: Apply automotive industry knowledge for context-appropriate decisions
+4. CONFIDENCE CALIBRATION: Rate certainty (0.0-1.0) based on evidence strength and clarity
 
-## Decision Guidelines
-- Prioritize data content over column names when they conflict
-- For compound names (email_cliente, kunde_phone), focus on the data type, not customer indicator
-- Email addresses (@ symbols) always map to customer_email regardless of column name
-- Phone numbers (+ symbols, digit patterns) always map to customer_phone
-- Price indicators (currency symbols, large numbers) map to price
-- Be conservative with confidence - uncertain mappings should have lower scores
+DECISION FRAMEWORK:
+- Sample data content takes PRIORITY over column names when they conflict
+- Email formats (containing @ symbols) ALWAYS map to customer_email
+- Phone formats (+ symbols, digit patterns) ALWAYS map to customer_phone
+- Currency indicators (€, $, £ symbols) ALWAYS map to price
+- 4-digit numbers (2020-2030 range) typically map to year
+- For compound column names (email_cliente, kunde_phone), focus on the DATA TYPE not the customer prefix
+- Reject mappings with confidence below 0.6 - be conservative with uncertain cases
 
-Respond with JSON only:
-{{"target_field": "field_name", "confidence": 0.75, "reasoning": "why this mapping makes sense"}}"""
+RESPONSE FORMAT: JSON only, no additional text""",
+                "capabilities": ["domain_expertise", "language_understanding", "data_type_analysis"]
+            }
+
+            prompt = agent_config["instructions"] + f"""
+
+OUTPUT: Provide analysis as JSON:
+{{"target_field": "field_name", "confidence": 0.85, "reasoning": "detailed explanation of mapping decision"}}"""
 
             response = self.openai_client.chat.completions.create(
                 model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
                 messages=[
-                    {"role": "system", "content": "You are a data mapping specialist. Always respond with valid JSON only."},
+                    {"role": "system", "content": f"You are {agent_config['name']}: {agent_config['description']}. Your capabilities include: {', '.join(agent_config['capabilities'])}. Always respond with valid JSON only."},
                     {"role": "user", "content": prompt}
                 ],
                 max_tokens=200,
